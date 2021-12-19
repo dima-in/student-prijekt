@@ -29,7 +29,7 @@ public class FakeCityRegisterChecker implements CityRegisterChecker {
 
         if (person instanceof Adult) {
             Adult t = (Adult)person;
-            String ps = t.getPassportSeria();
+            String ps = t.getPassportSeries();
 
             if (ps.equals(GOOD_1)||ps.equals(GOOD_2)) {
                 //возвращаемое значение

@@ -64,14 +64,14 @@ public class SaveStudentOrder
 
         Adult husband = new Adult("Тенек","Аркадий", "Потапович",LocalDate.of(1952,01,19));
         //вызов сеттеров у класса Adult
-        husband.setPassportSeria("" + (1000 + id));
+        husband.setPassportSeries("" + (1000 + id));
         husband.setPassportNumber("" + (100000 + id));
         husband.setIssueData(LocalDate.of(2010,12,3));
         husband.setIssueDepartment(passportOffice1);
         husband.setStudentID("" + 10000 +id);
 
         Adult wife = new Adult("Тенек", "Фаина", "Львовна",LocalDate.of(1952, 03,5));
-        wife.setPassportSeria("" + (2000 + id));
+        wife.setPassportSeries("" + (2000 + id));
         wife.setPassportNumber("" + (200000 + id));
         wife.setIssueData(LocalDate.of(2010,10,7));
         wife.setIssueDepartment(passportOffice2);

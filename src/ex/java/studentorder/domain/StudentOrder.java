@@ -1,22 +1,39 @@
 package ex.java.studentorder.domain;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public class StudentOrder //данные заявки
 {
     private long studentOrderID;
+    private StudentOrderStatus studentOrderStatus; //статус заявления
+    private LocalDateTime studentOrderDate; //дата и время подачи заявки
     private Adult husband;//эти данные
     private Adult wife;// вызываются из соответствующих классов
-
-    private List<Child> children;
-    //создается переменная children, 
+    private List<Child> children;//создается переменная children,
     // которая ссылается на обьект типа лист,
     // который содержит группу обьектов типа Child
     private String marriageCertificateId;
     private RegisterOffice marriageOffice;
     private LocalDate marriageDate;
+
+    public StudentOrderStatus getStudentOrderStatus() {
+        return studentOrderStatus;
+    }
+
+    public void setStudentOrderStatus(StudentOrderStatus studentOrderStatus) {
+        this.studentOrderStatus = studentOrderStatus;
+    }
+
+    public LocalDateTime getStudentOrderDate() {
+        return studentOrderDate;
+    }
+
+    public void setStudentOrderDate(LocalDateTime studentOrderDate) {
+        this.studentOrderDate = studentOrderDate;
+    }
 
     public String getMarriageCertificateId() {
         return marriageCertificateId;

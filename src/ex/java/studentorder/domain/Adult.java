@@ -4,7 +4,7 @@ import java.time.LocalDate;
 // НАСЛЕДНИК!!! ПОТОМОК!!! вызывает конструктор предка, родителя, и передает ему параметры
 public class Adult extends Person
 {
-    private String passportSeria;
+    private String passportSeries;
     private String passportNumber;
     private LocalDate issueData;
     private PassportOffice issueDepartment;
@@ -35,12 +35,12 @@ public class Adult extends Person
         this.studentID = studentID;
     }
 
-    public String getPassportSeria() {
-        return passportSeria;
+    public String getPassportSeries() {
+        return passportSeries;
     }
 
-    public void setPassportSeria(String passportSeria) {
-        this.passportSeria = passportSeria;
+    public void setPassportSeries(String passportSeries) {
+        this.passportSeries = passportSeries;
     }
 
     public String getPassportNumber() {
