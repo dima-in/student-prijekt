@@ -6,6 +6,7 @@ import ex.java.studentorder.domain.StudentOrderStatus;
 import ex.java.studentorder.exception.DaoException;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 
 //
 public class StudentDaoImpl implements StudentOrderDao{
@@ -36,7 +37,7 @@ public class StudentDaoImpl implements StudentOrderDao{
              PreparedStatement stmt = con.prepareStatement(INSERT_ORDER)){
 
              stmt.setInt(1, StudentOrderStatus.START.ordinal());
-             stmt.setTimestamp(2, java.sql.Timestamp.valueOf(so.getStudentOrderDate()));
+             stmt.setTimestamp(2, java.sql.Timestamp.valueOf(LocalDateTime.now()));
 
              stmt.setString(3, so.getHusband().getSurName());
              stmt.setString(4, so.getHusband().getGivenName());
@@ -70,10 +71,10 @@ public class StudentDaoImpl implements StudentOrderDao{
              stmt.setLong(30,so.getMarriageOffice().getOfficeId());
              stmt.setDate(31,java.sql.Date.valueOf(so.getMarriageDate()));
 
-//            "marriage_certificate_id, register_office_id, marriage_date)"
+             stmt.executeUpdate();//
         } catch (SQLException ex) {
             throw new DaoException(ex);
         }
-        return 0l;
+        return 0L;
     }
 }
