@@ -10,12 +10,14 @@ public abstract class Person { //РОДИТЕЛЬ!!! ПРЕДОК!!! ИМЕЕТ 
     private LocalDate dateOfBirth;
     private Address address;
 
-    public Person(String surName, String givenName, String patronymic, LocalDate dateOfBirth) {
+    public Person(String surName, String givenName, String patronymic, LocalDate dateOfBirth, Address address) {
         this.surName = surName;
         this.givenName = givenName;
         this.patronymic = patronymic;
         this.dateOfBirth = dateOfBirth;
+        this.address = address;//TODO разобраться что не так с getAddress
     }
+
 
     public Address getAddress() {
         return address;

@@ -10,13 +10,23 @@ public class Adult extends Person
     private PassportOffice issueDepartment;
     private String university;
     private String studentID;
-
-    public Adult(String surName,
-                 String givenName,
-                 String patronymic,
-                 LocalDate dateOfBirth) {
-        super(surName, givenName, patronymic, dateOfBirth);
+//, String passportSeries, String passportNumber, LocalDate issueData, PassportOffice issueDepartment, String university, String studentID
+    public Adult(String surName, String givenName, String patronymic, LocalDate dateOfBirth, Address address) {
+        super(surName, givenName, patronymic, dateOfBirth, address);
+//        this.passportSeries = passportSeries;
+//        this.passportNumber = passportNumber;
+//        this.issueData = issueData;
+//        this.issueDepartment = issueDepartment;
+//        this.university = university;
+//        this.studentID = studentID;
     }
+
+//    public Adult(String surName,
+//                 String givenName,
+//                 String patronymic,
+//                 LocalDate dateOfBirth) {
+//        super(surName, givenName, patronymic, dateOfBirth);
+//    }
 
 
     public String getUniversity() {
