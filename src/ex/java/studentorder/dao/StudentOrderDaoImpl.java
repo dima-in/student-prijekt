@@ -39,38 +39,41 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
 
              stmt.setInt(1, StudentOrderStatus.START.ordinal());
              stmt.setTimestamp(2, java.sql.Timestamp.valueOf(LocalDateTime.now()));
+                        int stert = 3;
+            stmt.setString(stert , so.getHusband().getSurName());
+            stmt.setString(stert + 1, so.getHusband().getGivenName());
+            stmt.setString(stert + 2, so.getHusband().getPatronymic());
+            stmt.setDate(  stert + 3 , java.sql.Date.valueOf(so.getHusband().getDateOfBirth()));
+            stmt.setString(stert + 4 ,so.getHusband().getPassportSeries());
+            stmt.setString(stert + 5 ,so.getHusband().getPassportNumber());
+            stmt.setDate(  stert + 6 ,java.sql.Date.valueOf(so.getHusband().getIssueData()));
+            stmt.setLong(  stert + 7 ,so.getHusband().getIssueDepartment().getOfficeId());
+            stmt.setLong(  stert + 8 , so.getHusband().getAddress().getPostCode());
+            stmt.setLong(  stert + 9 , so.getHusband().getAddress().getStreet().getstreetCode());
+            stmt.setString(stert + 10, so.getHusband().getAddress().getBuilding());
+            stmt.setString(stert + 11, so.getHusband().getAddress().getExtension());
+            stmt.setString(stert + 12,so.getHusband().getAddress().getApartment());
 
-             stmt.setString(3, so.getHusband().getSurName());
-             stmt.setString(4, so.getHusband().getGivenName());
-             stmt.setString(5, so.getHusband().getPatronymic());
-             stmt.setDate(6, java.sql.Date.valueOf(so.getHusband().getDateOfBirth()));
-             stmt.setString(7,so.getHusband().getPassportSeries());
-             stmt.setString(8,so.getHusband().getPassportNumber());
-             stmt.setDate(9,java.sql.Date.valueOf(so.getHusband().getIssueData()));
-             stmt.setLong(10,so.getHusband().getIssueDepartment().getOfficeId());
-             stmt.setLong(11, so.getHusband().getAddress().getPostCode());
-             stmt.setLong(12, so.getHusband().getAddress().getStreet().getstreetCode());
-             stmt.setString(13, so.getHusband().getAddress().getBuilding());
-             stmt.setString(14, so.getHusband().getAddress().getExtension());
-             stmt.setString(15,so.getHusband().getAddress().getApartment());
+            stmt.setString(stert + 13, so.getWife().getSurName());
+            stmt.setString(stert + 14, so.getWife().getGivenName());
+            stmt.setString(stert + 15, so.getWife().getPatronymic());
+            stmt.setDate(  stert + 16, java.sql.Date.valueOf(so.getWife().getDateOfBirth()));
+            stmt.setString(stert + 17, so.getWife().getPassportSeries());
+            stmt.setString(stert + 18, so.getWife().getPassportNumber());
+            stmt.setDate(  stert + 19, java.sql.Date.valueOf(so.getWife().getIssueData()));
+            stmt.setLong(  stert + 20, so.getWife().getIssueDepartment().getOfficeId());
+            stmt.setLong(  stert + 21, so.getWife().getAddress().getPostCode());
+            stmt.setLong(  stert + 22, so.getWife().getAddress().getStreet().getstreetCode());
+            stmt.setString(stert + 23, so.getWife().getAddress().getBuilding());
+            stmt.setString(stert + 24, so.getWife().getAddress().getExtension());
+            stmt.setString(stert + 25, so.getWife().getAddress().getApartment());
 
-             stmt.setString(16, so.getWife().getSurName());
-             stmt.setString(17, so.getWife().getGivenName());
-             stmt.setString(18, so.getWife().getPatronymic());
-             stmt.setDate(19, java.sql.Date.valueOf(so.getWife().getDateOfBirth()));
-             stmt.setString(20, so.getWife().getPassportSeries());
-             stmt.setString(21, so.getWife().getPassportNumber());
-             stmt.setDate(22, java.sql.Date.valueOf(so.getWife().getIssueData()));
-             stmt.setLong(23, so.getWife().getIssueDepartment().getOfficeId());
-             stmt.setLong(24, so.getWife().getAddress().getPostCode());
-             stmt.setLong(25, so.getWife().getAddress().getStreet().getstreetCode());
-             stmt.setString(26, so.getWife().getAddress().getBuilding());
-             stmt.setString(27, so.getWife().getAddress().getExtension());
-             stmt.setString(28, so.getWife().getAddress().getApartment());
+
+
 
              stmt.setString(29,so.getMarriageCertificateId());
-             stmt.setLong(30,so.getMarriageOffice().getOfficeId());
-             stmt.setDate(31,java.sql.Date.valueOf(so.getMarriageDate()));
+             stmt.setLong(  30,so.getMarriageOffice().getOfficeId());
+             stmt.setDate(  31,java.sql.Date.valueOf(so.getMarriageDate()));
 
              stmt.executeUpdate();//
             ResultSet gkRs = stmt.getGeneratedKeys();//возвращает  сгенерированные поля
