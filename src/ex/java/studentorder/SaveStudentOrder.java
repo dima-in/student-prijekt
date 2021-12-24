@@ -66,7 +66,7 @@ public class SaveStudentOrder
         Street street = new Street(1L, "Кутузовский проспект");
         Address address = new Address(235714L, street, "32","1", "103");
 
-        Adult husband = new Adult("Тенек", "Аркадий","Львович", LocalDate.of(1952,01,19),address);
+        Adult husband = new Adult("Марш", "Рэнди","Марвин", LocalDate.of(1952,01,19),address);
         // Adult
         husband.setPassportSeries("" + (1000 + id));
         husband.setPassportNumber("" + (100000 + id));
@@ -76,7 +76,7 @@ public class SaveStudentOrder
         husband.setIssueDepartment(passportOffice1);
         husband.setStudentID("" + 10000 +id);
 
-        Adult wife = new Adult("Тенек", "Фаина", "Львовна",LocalDate.of(1952, 03,5), address);
+        Adult wife = new Adult("Марш", "Шерон", "Эйприл",LocalDate.of(1952, 03,5), address);
         wife.setPassportSeries("" + (2000 + id));
         wife.setPassportNumber("" + (200000 + id));
         wife.setIssueData(LocalDate.of(2010,10,7));
@@ -85,7 +85,7 @@ public class SaveStudentOrder
         wife.setIssueDepartment(passportOffice2);
         wife.setStudentID("" + 20000 +id);
 
-        Child child1 = new Child("Тенек", "Георгий", "Аркадьевич",LocalDate.of(2013, 11,22),address);
+        Child child1 = new Child("Марш", "Стенли", "Рендалл",LocalDate.of(2013, 11,22),address);
         child1.setCertificateNumber("" + (30000 + id));
         child1.setIssueDate(LocalDate.of(2013, 11, 23));
         RegisterOffice registerOffice1 =
@@ -93,9 +93,9 @@ public class SaveStudentOrder
         child1.setIssueDepartment(registerOffice1);
         child1.setAddress(address);
 
-        Child child2 = new Child("Тенек", "Соня", "Аркадьевна",LocalDate.of(2013, 11,22),address);
-        child2.setCertificateNumber("" + (30000 + id));
-        child2.setIssueDate(LocalDate.of(2013, 11, 23));
+        Child child2 = new Child("Марш", "Шелли", "Рендалл",LocalDate.of(2013, 11,22),address);
+        child2.setCertificateNumber("" + (40000 + id));
+        child2.setIssueDate(LocalDate.of(2020, 6, 13));
         RegisterOffice registerOffice2 =
                 new RegisterOffice(4L, "","ЗАГЗ №"  + id);
         child2.setIssueDepartment(registerOffice2);
