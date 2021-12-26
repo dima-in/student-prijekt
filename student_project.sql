@@ -3,6 +3,7 @@ DROP TABLE IF EXISTS student_order;
 DROP TABLE IF EXISTS passport_office;
 DROP TABLE IF EXISTS register_office;
 DROP TABLE IF EXISTS country_struct;
+DROP TABLE IF EXISTS cat_university;
 DROP TABLE IF EXISTS cat_street;
 
 CREATE TABLE cat_street /*справочник улиц*/
@@ -10,6 +11,13 @@ CREATE TABLE cat_street /*справочник улиц*/
 	street_code integer not null,
 	street_name varchar(300),
 	PRIMARY KEY (street_code)
+);
+
+CREATE TABLE cat_university /*справочник университетов*/
+(
+	university_id integer not null,
+	university_name varchar(300),
+	PRIMARY KEY (university_id)
 );
 
 CREATE TABLE country_struct /*населенный пункт*/
@@ -55,6 +63,8 @@ CREATE TABLE student_order
     h_building varchar(10) not null,
     h_extension varchar(10),
     h_apartment varchar(10),
+    h_university_id integer not null,
+    h_student_number varchar(30),
     w_sur_name varchar(100) not null,
     w_given_name varchar(100)not null,
     w_patronymic varchar(100)not null,
@@ -68,13 +78,20 @@ CREATE TABLE student_order
     w_building varchar(10) not null,
     w_extension varchar(10),
     w_apartment varchar(10),
+    w_university_id integer not null,
+    w_student_number varchar(30),
     marriage_certificate_id varchar(20) not null,
     register_office_id integer not null,
     marriage_date date not null,
     PRIMARY KEY (student_order_id),
-    FOREIGN KEY (register_office_id) REFERENCES register_office(r_office_id) ON DELETE RESTRICT,
+
     FOREIGN KEY (h_street_code) REFERENCES cat_street(street_code) ON DELETE RESTRICT,
-    FOREIGN KEY (w_street_code) REFERENCES cat_street(street_code) ON DELETE RESTRICT
+    FOREIGN KEY (h_passport_office_id) REFERENCES passport_office(p_office_id) ON DELETE RESTRICT,
+    FOREIGN KEY (h_university_id) REFERENCES cat_university(university_id) ON DELETE RESTRICT,
+    FOREIGN KEY (w_street_code) REFERENCES cat_street(street_code) ON DELETE RESTRICT,
+    FOREIGN KEY (w_passport_office_id) REFERENCES passport_office(p_office_id) ON DELETE RESTRICT,
+    FOREIGN KEY (w_university_id) REFERENCES cat_university(university_id) ON DELETE RESTRICT,
+    FOREIGN KEY (register_office_id) REFERENCES register_office(r_office_id) ON DELETE RESTRICT
 );
 
 CREATE TABLE student_child

@@ -75,6 +75,8 @@ public class SaveStudentOrder
                 new PassportOffice(1L,"552","Пастортный стол №"  + id);
         husband.setIssueDepartment(passportOffice1);
         husband.setStudentID("" + 10000 +id);
+        husband.setUniversity(new University(2L, "")); // запись аналогична PassportOffice
+        husband.setStudentID("HH12345");
 
         Adult wife = new Adult("Марш", "Шерон", "Эйприл",LocalDate.of(1952, 03,5), address);
         wife.setPassportSeries("" + (2000 + id));
@@ -84,6 +86,8 @@ public class SaveStudentOrder
                 new PassportOffice(2L,"","Пастортный стол №"  + id);
         wife.setIssueDepartment(passportOffice2);
         wife.setStudentID("" + 20000 +id);
+        wife.setUniversity(new University(1L,""));
+        wife.setStudentID("WW12345");
 
         Child child1 = new Child("Марш", "Стенли", "Рендалл",LocalDate.of(2013, 11,22),address);
         child1.setCertificateNumber("" + (30000 + id));

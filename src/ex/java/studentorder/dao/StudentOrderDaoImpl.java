@@ -11,20 +11,31 @@ import java.time.LocalDateTime;
 public class StudentOrderDaoImpl implements StudentOrderDao{
 
     private static final String INSERT_ORDER = "INSERT INTO student_order(" +
-            "student_order_status, student_order_date, h_sur_name, " +  //
-            "h_given_name, h_patronymic, h_date_of_birth, h_passport_seria, h_passport_number, " +
-            "h_passport_date, h_passport_office_id, h_post_index, h_street_code, h_building, " +
-            "h_extension, h_apartment, w_sur_name, w_given_name, w_patronymic, w_date_of_birth, " +
-            "w_passport_seria, w_passport_number, w_passport_date, w_passport_office_id, " +
-            "w_post_index, w_street_code, w_building, w_extension, w_apartment, " +
-            "marriage_certificate_id, register_office_id, marriage_date)" +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
-                    "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
-    private static final String INSERT_CHILD = "INSERT INTO public.student_child(" +
-            "student_order_id, ch_sur_name, ch_given_name, ch_patronymic," +
-            " ch_date_of_birth, ch_certificate_number, ch_certificate_date, ch_register_office_id, " +
-            "ch_post_index, ch_street_code, ch_building, ch_extension, ch_apartment)" +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            "student_order_status, student_order_date, h_sur_name, " + // 3
+            "h_given_name, h_patronymic, h_date_of_birth, h_passport_seria, h_passport_number, " + // 5
+            "h_passport_date, h_passport_office_id, h_post_index, h_street_code, h_building, " + // 5
+            "h_extension, h_apartment, h_university_id, h_student_number," + // 4
+            "w_sur_name, w_given_name, w_patronymic, w_date_of_birth, " + // 4
+            "w_passport_seria, w_passport_number, w_passport_date, w_passport_office_id, " + // 4
+            "w_post_index, w_street_code, w_building, w_extension, " + // 4
+            "w_apartment, w_university_id, w_student_number, " + // 3
+            "marriage_certificate_id, register_office_id, marriage_date)" + //3
+            "VALUES (?, ?, ?, " +
+            "?, ?, ?, ?, ?, " +
+            "?, ?, ?, ?, ?, " +
+            "?, ?, ?, ?, " +
+            "?, ?, ?, ?, " +
+            "?, ?, ?, ?, " +
+            "?, ?, ?, ?, " +
+            "?, ?, ?, " +
+            "?, ?, ?);";
+    private static final String INSERT_CHILD = "INSERT INTO student_child(" +
+            "student_order_id, ch_sur_name, ch_given_name, ch_patronymic," +// 4
+            " ch_date_of_birth, ch_certificate_number, ch_certificate_date, ch_register_office_id, " +//4
+            "ch_post_index, ch_street_code, ch_building, ch_extension, ch_apartment)" + //5
+            "VALUES (?, ?, ?, ?," +
+            " ?, ?, ?, ?, " +
+            "?, ?, ?, ?, ?)";
 
 //TODO refactoring make one method
 
@@ -38,30 +49,41 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
     @Override
     public Long saveStudentOrder(StudentOrder so) throws DaoException {
         Long result = -1L;
-        try (Connection con = getConnection(); //массив из автосгенерированных id в psql в колонке student_order_id
-             PreparedStatement stmt = con.prepareStatement(INSERT_ORDER, new String[]{"student_order_id"}))
+        try (Connection con = getConnection();
+             //массив из автосгенерированных id в sql в столбце student_order_id
+             PreparedStatement stmt =
+                     con.prepareStatement(INSERT_ORDER, new String[]{"student_order_id"}))
         {
-            stmt.setInt(      1, StudentOrderStatus.START.ordinal());
-            stmt.setTimestamp(2, java.sql.Timestamp.valueOf(LocalDateTime.now()));
-            //husband and wife
-            setAdultParam(stmt, 3, so.getHusband());
-            setAdultParam(stmt, 16, so.getWife());
-            //marriage
-            stmt.setString(29,so.getMarriageCertificateId());
-            stmt.setLong(  30,so.getMarriageOffice().getOfficeId());
-            stmt.setDate(  31,java.sql.Date.valueOf(so.getMarriageDate()));
+            con.setAutoCommit(false); //запрещаем автокомит, помещаем транзакцию в блок try
+            try {
+                //header
+                stmt.setInt(1, StudentOrderStatus.START.ordinal());
+                stmt.setTimestamp(2, java.sql.Timestamp.valueOf(LocalDateTime.now()));
+                //husband and wife
+                setAdultParam(stmt, 3, so.getHusband());
+                setAdultParam(stmt, 18, so.getWife());
+                //marriage
+                stmt.setString(33, so.getMarriageCertificateId());
+                stmt.setLong(34, so.getMarriageOffice().getOfficeId());
+                stmt.setDate(35, java.sql.Date.valueOf(so.getMarriageDate()));
 
-            stmt.executeUpdate();//
+                stmt.executeUpdate();//возвращает количество записей, затронутых изменениями
 
-            ResultSet gkRs = stmt.getGeneratedKeys();//возвращает  сгенерированные поля
-            // возвращение автосгенерированного идентификатора студ.заявления
-            if (gkRs.next()) {
-                result = gkRs.getLong(1);
+                ResultSet gkRs = stmt.getGeneratedKeys();//возвращает  авто-сгенерированные в SQL поля
+                // возвращение авто-сгенерированного идентификатора студ.заявления
+                if (gkRs.next()) {
+                    //получить значение из первого столбца таблицы student_order
+                    result = gkRs.getLong(1);
+                }
+                gkRs.close();
+
+                saveChildren(con, so, result);
+//            stmt.executeUpdate();
+
+                con.commit();// если все ок, проводим транзакцию
+            } catch (SQLException ex) {
+                con.rollback();
             }
-            gkRs.close();
-
-            saveChildren(con, so, result);
-
         } catch (SQLException ex) {
             throw new DaoException(ex);
         }
@@ -74,8 +96,10 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
             for (Child child : so.getChildren()) {
                 stmt.setLong(1, soId);
                 setParamsForChild(stmt, child);
-                stmt.executeUpdate();
+                stmt.addBatch();//
             }
+
+            stmt.executeBatch();// отправляет транзакции пакетами записи пакетами
         }
     }
 
@@ -86,6 +110,8 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
         stmt.setDate(  start + 6 , Date.valueOf(adult.getIssueData()));
         stmt.setLong(  start + 7 , adult.getIssueDepartment().getOfficeId());
         setAddressForPerson(stmt, start + 8, adult);
+        stmt.setLong(start + 13, adult.getUniversity().getUniversutyId());
+        stmt.setString(start + 14, adult.getUniversity().getUniversutyName());
     }
 
     private void setParamsForPerson(PreparedStatement stmt, int start, Person person) throws SQLException {

@@ -5,6 +5,10 @@ INSERT INTO cat_street (street_code, street_name) VALUES
 (4, 'улица Свободы'),
 (5, 'проспект Дорохова');
 
+INSERT INTO cat_university(university_id, university_name) VALUES
+(1, 'Московский Государственный Университет'),
+(2, 'Московский Политехнический Университет'),
+(3, 'Московский технический университет связи и информатики');
 
 INSERT INTO country_struct(area_id, area_name) VALUES
 ('010000000000','Город'),

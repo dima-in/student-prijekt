@@ -8,17 +8,17 @@ public class Adult extends Person
     private String passportNumber;
     private LocalDate issueData;
     private PassportOffice issueDepartment;
-    private String university;
+    private University university;
     private String studentID;
-//, String passportSeries, String passportNumber, LocalDate issueData, PassportOffice issueDepartment, String university, String studentID
-    public Adult(String surName, String givenName, String patronymic, LocalDate dateOfBirth, Address address) {
+//TODO разобраться почему не работает конструктор по умолчанию
+public Adult(String surName, String givenName, String patronymic, LocalDate dateOfBirth, Address address) {
         super(surName, givenName, patronymic, dateOfBirth, address);
-//        this.passportSeries = passportSeries;
-//        this.passportNumber = passportNumber;
-//        this.issueData = issueData;
-//        this.issueDepartment = issueDepartment;
-//        this.university = university;
-//        this.studentID = studentID;
+        this.passportSeries = passportSeries;
+        this.passportNumber = passportNumber;
+        this.issueData = issueData;
+        this.issueDepartment = issueDepartment;
+        this.university = university;
+        this.studentID = studentID;
     }
 
 //    public Adult(String surName,
@@ -29,11 +29,11 @@ public class Adult extends Person
 //    }
 
 
-    public String getUniversity() {
+    public University getUniversity() {
         return university;
     }
 
-    public void setUniversity(String university) {
+    public void setUniversity(University university) {
         this.university = university;
     }
 

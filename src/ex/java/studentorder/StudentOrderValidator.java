@@ -13,6 +13,19 @@ import ex.java.studentorder.validator.WeddingValidator;
 
 import java.util.LinkedList;
 import java.util.List;
+// получение данных
+// 1 ГРН
+// - ФИО, дата рождения, код улицы, дом, корпус, квартира
+// 2. ЗАГС
+// - Свидетельство о браке, дата выдачи, код поселения + название
+// - муж: ФИО, дата рождения, паспорт. серия, номер, дата, код поселения + название
+// - жена: ФИО, дата рождения, паспорт. серия, номер, дата, код поселения + название
+
+// - ребенок: ФИО, дата рождения, номер свидетельства о рождении, дата выдачи, код поселения + название
+// - отец: ФИО, дата рождения
+// - мать: ФИО, дата рождения
+// 3. Студент
+// - ФИО, дата рождения, паспорт. серия, номер, дата, код поселения + название, код вуза, номер студ.билета
 
 public class StudentOrderValidator {
 // проверяет всю заявку методом checkAll()
@@ -62,7 +75,8 @@ public class StudentOrderValidator {
     }
     public void checkOneOrder(StudentOrder so){
             AnswerCityRegister answerCityRegistry = checkCityRegistr(so); // сохранениме результата проверки из городского реестра в переменную типа ex.java.studentorder.domain.register.AnswerCityRegistry ans....
-//            AnswerWeddind answerWeddind = checkWedding(so);
+
+//            AnswerWedding answerWedding = checkWedding(so);
 //            AnswerChildren answerChildren = checkChildren(so);
 //            AnswerStudent answerStudent = checkStudent(so);
 //            sendMail(so);
