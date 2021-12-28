@@ -11,23 +11,14 @@ public class Adult extends Person
     private University university;
     private String studentID;
 //TODO разобраться почему не работает конструктор по умолчанию
-public Adult(String surName, String givenName, String patronymic, LocalDate dateOfBirth, Address address) {
-        super(surName, givenName, patronymic, dateOfBirth, address);
-        this.passportSeries = passportSeries;
-        this.passportNumber = passportNumber;
-        this.issueData = issueData;
-        this.issueDepartment = issueDepartment;
-        this.university = university;
-        this.studentID = studentID;
+
+    public Adult() {
     }
 
-//    public Adult(String surName,
-//                 String givenName,
-//                 String patronymic,
-//                 LocalDate dateOfBirth) {
-//        super(surName, givenName, patronymic, dateOfBirth);
-//    }
+    public Adult(String surName, String givenName, String patronymic, LocalDate dateOfBirth) {
+        super(surName, givenName, patronymic, dateOfBirth);
 
+    }
 
     public University getUniversity() {
         return university;

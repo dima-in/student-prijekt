@@ -6,8 +6,9 @@ import ex.java.studentorder.exception.DaoException;
 
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.util.LinkedList;
+import java.util.List;
 
-//
 public class StudentOrderDaoImpl implements StudentOrderDao{
 
     private static final String INSERT_ORDER = "INSERT INTO student_order(" +
@@ -36,6 +37,11 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
             "VALUES (?, ?, ?, ?," +
             " ?, ?, ?, ?, " +
             "?, ?, ?, ?, ?)";
+    public static final String SELECT_ORDERS =
+            "SELECT so.*, ro.r_office_area_id, ro.r_office_name FROM student_order so" +
+                    "INNER JOIN register_office ro ON ro.r_office_id = so.register_office_id" +
+                    "WHERE student_order_status = 0 ORDER BY student_order_date"; // сортируем по дате
+
 
 //TODO refactoring make one method
 
@@ -46,6 +52,7 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
                 Config.getProperty(Config.DB_PASSWORD));//avg
         return con;
     }
+    //Сохранение данных
     @Override
     public Long saveStudentOrder(StudentOrder so) throws DaoException {
         Long result = -1L;
@@ -78,7 +85,7 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
                 gkRs.close();
 
                 saveChildren(con, so, result);
-//            stmt.executeUpdate();
+
 
                 con.commit();// если все ок, проводим транзакцию
             } catch (SQLException ex) {
@@ -96,10 +103,9 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
             for (Child child : so.getChildren()) {
                 stmt.setLong(1, soId);
                 setParamsForChild(stmt, child);
-                stmt.addBatch();//
+                stmt.addBatch();// добавить пакет транзакций
             }
-
-            stmt.executeBatch();// отправляет транзакции пакетами записи пакетами
+            stmt.executeBatch(); // отправляет транзакции пакетами записи пакетами
         }
     }
 
@@ -111,7 +117,7 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
         stmt.setLong(  start + 7 , adult.getIssueDepartment().getOfficeId());
         setAddressForPerson(stmt, start + 8, adult);
         stmt.setLong(start + 13, adult.getUniversity().getUniversutyId());
-        stmt.setString(start + 14, adult.getUniversity().getUniversutyName());
+        stmt.setString(start + 14, adult.getStudentID());
     }
 
     private void setParamsForPerson(PreparedStatement stmt, int start, Person person) throws SQLException {
@@ -122,20 +128,93 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
     }
 
     private void setAddressForPerson(PreparedStatement stmt, int start, Person person) throws SQLException {
-        Address hus_address = person.getAddress();
-        stmt.setLong(  start , hus_address.getPostCode());
-        stmt.setLong(  start + 1 , hus_address.getStreet().getstreetCode());
-        stmt.setString(start + 2, hus_address.getBuilding());
-        stmt.setString(start + 3, hus_address.getExtension());
-        stmt.setString(start + 4, hus_address.getApartment());
+        Address adult_address = person.getAddress();
+        stmt.setLong(  start , adult_address.getPostCode());
+        stmt.setLong(  start + 1 , adult_address.getStreet().getstreetCode());
+        stmt.setString(start + 2, adult_address.getBuilding());
+        stmt.setString(start + 3, adult_address.getExtension());
+        stmt.setString(start + 4, adult_address.getApartment());
     }
 
     private void setParamsForChild(PreparedStatement stmt, Child child) throws SQLException {
+
+
+
         setParamsForPerson(stmt, 2, child);
         stmt.setString(6, child.getCertificateNumber());
         stmt.setDate(7, Date.valueOf(child.getIssueDate()));
         stmt.setLong(8, child.getIssueDepartment().getOfficeId());
         setAddressForPerson(stmt, 9,child);
     }
+
+    // получение данных. получает студенческие заявления
+    @Override
+    public List<StudentOrder> getStudentOrders() throws DaoException{ //исключения для метода getStudentOrders()
+        List<StudentOrder> result = new LinkedList<>(); // пустой список
+        try (Connection con = getConnection(); //внутри метода может произойти SQLException
+             PreparedStatement stmt = con.prepareStatement(SELECT_ORDERS)) {
+
+            ResultSet rs = stmt.executeQuery(); // возвращает результат запроса
+            while (rs.next()) {
+                StudentOrder so = new StudentOrder(); // если есть записи, создаем заявку so,
+                fillStudentOrder(rs, so);               // заполняем временными данными
+                fillWedding(rs, so);                    // и добаляем so в List<> result
+                Adult husband = fillAdult(rs, "h_");
+                Adult wife = fillAdult(rs, "w_");
+                so.setHusband(husband);
+                so.setWife(wife);
+                result.add(so);
+            }
+            rs.close();
+        } catch (SQLException ex) { //если будет SQLExc, создается свой экземпляр
+            throw new DaoException(ex);
+        }
+        return result; //список с заявками
+    }
+
+    private Adult fillAdult(ResultSet rs, String pref) throws SQLException {
+        Adult adult = new Adult();
+        adult.setSurName(rs.getString(pref + "sur_name"));
+        adult.setGivenName(rs.getString(pref + "given_name"));
+        adult.setPatronymic(rs.getString(pref + "patronymic"));
+        adult.setDateOfBirth(rs.getDate(pref + "date_of_birth").toLocalDate());
+        adult.setPassportSeries(rs.getString(pref + "passport_seria"));
+        adult.setPassportNumber(rs.getString(pref + "passport_number"));
+        adult.setIssueData(rs.getDate(pref + "passport_date").toLocalDate());
+        PassportOffice po = new PassportOffice(rs.getLong(pref + "passport_office_id"),"","");
+        adult.setIssueDepartment(po); // TODO разобраться
+        Address address = new Address();
+        address.setPostCode(rs.getLong(pref + "post_index"));
+        Street street = new Street(rs.getLong(pref + "street_code"), "");
+        address.setStreet(street);
+        address.setBuilding(rs.getString(pref + "building"));
+        address.setExtension(rs.getString(pref + "extension"));
+        address.setApartment(rs.getString(pref + "apartment"));
+        adult.setAddress(address);
+        University university = new University(rs.getLong(pref + "university_id"),"");
+        adult.setUniversity(university);
+        adult.setStudentID(rs.getString(pref + "student_number"));
+
+        return adult;
+    }
+
+    // заголовки
+    // получение данных заявления из БД, получение данных из rs может порождать исключения
+    private void fillStudentOrder(ResultSet rs, StudentOrder so) throws SQLException{
+        so.setStudentOrderID(rs.getLong("student_order_id"));
+        so.setStudentOrderDate(rs.getTimestamp("student_order_date").toLocalDateTime());
+        so.setStudentOrderStatus(StudentOrderStatus.fromValue(rs.getInt("student_order_status")));
+    }
+    // получение данных о браке
+    private void fillWedding(ResultSet rs, StudentOrder so) throws SQLException {
+        so.setMarriageCertificateId(rs.getString("marriage_certificate_id"));
+        so.setMarriageDate(rs.getDate("marriage_date").toLocalDate());
+        Long roId = rs.getLong("register_office_id");
+
+        RegisterOffice ro = new RegisterOffice(roId, "","");
+        so.setMarriageOffice(ro);
+    }
 }
+
+
 
