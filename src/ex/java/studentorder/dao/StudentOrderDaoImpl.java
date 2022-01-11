@@ -38,10 +38,14 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
             " ?, ?, ?, ?, " +
             "?, ?, ?, ?, ?)";
     public static final String SELECT_ORDERS =
-            "SELECT so.*, ro.r_office_area_id, ro.r_office_name FROM student_order so" +
+            "SELECT so.*, ro.r_office_area_id, ro.r_office_name," +
+                    "po_h.p_office_area_id as h_p_office_area_id, po_h.p_office_name as h_p_office_name," +
+                    "po_w.p_office_area_id as w_p_office_area_id, po_w.p_office_name as w_p_office_name" +
+                    "FROM student_order so" +
                     "INNER JOIN register_office ro ON ro.r_office_id = so.register_office_id" +
-                    "WHERE student_order_status = 0 ORDER BY student_order_date"; // сортируем по дате
-
+                    "INNER JOIN passport_office po_h ON po_h.p_office_id = so.h_passport_office_id" +
+                    "INNER JOIN passport_office po_w ON po_w.p_office_id = so.w_passport_office_id" +
+                    "WHERE student_order_status = 0 ORDER BY student_order_date"; //внутренние соеденение на сортируем по дате
 
 //TODO refactoring make one method
 
@@ -57,7 +61,7 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
     public Long saveStudentOrder(StudentOrder so) throws DaoException {
         Long result = -1L;
         try (Connection con = getConnection();
-             //массив из автосгенерированных id в sql в столбце student_order_id
+             //массив из автосгенерированных в BD id в столбце student_order_id
              PreparedStatement stmt =
                      con.prepareStatement(INSERT_ORDER, new String[]{"student_order_id"}))
         {
@@ -76,7 +80,7 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
 
                 stmt.executeUpdate();//возвращает количество записей, затронутых изменениями
 
-                ResultSet gkRs = stmt.getGeneratedKeys();//возвращает  авто-сгенерированные в SQL поля
+                ResultSet gkRs = stmt.getGeneratedKeys();//возвращает  авто-сгенерированные в BD поля
                 // возвращение авто-сгенерированного идентификатора студ.заявления
                 if (gkRs.next()) {
                     //получить значение из первого столбца таблицы student_order
@@ -103,7 +107,7 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
             for (Child child : so.getChildren()) {
                 stmt.setLong(1, soId);
                 setParamsForChild(stmt, child);
-                stmt.addBatch();// добавить пакет транзакций
+                stmt.addBatch(); // добавить пакет транзакций
             }
             stmt.executeBatch(); // отправляет транзакции пакетами записи пакетами
         }
@@ -137,8 +141,6 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
     }
 
     private void setParamsForChild(PreparedStatement stmt, Child child) throws SQLException {
-
-
 
         setParamsForPerson(stmt, 2, child);
         stmt.setString(6, child.getCertificateNumber());
@@ -181,7 +183,8 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
         adult.setPassportSeries(rs.getString(pref + "passport_seria"));
         adult.setPassportNumber(rs.getString(pref + "passport_number"));
         adult.setIssueData(rs.getDate(pref + "passport_date").toLocalDate());
-        PassportOffice po = new PassportOffice(rs.getLong(pref + "passport_office_id"),"","");
+
+        PassportOffice po = new PassportOffice(rs.getLong(pref + "passport_office_id"),rs.getString(pref + "p_office_area_id"), rs.getString(pref + "p_office_name"));
         adult.setIssueDepartment(po); // TODO разобраться
         Address address = new Address();
         address.setPostCode(rs.getLong(pref + "post_index"));
@@ -194,7 +197,6 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
         University university = new University(rs.getLong(pref + "university_id"),"");
         adult.setUniversity(university);
         adult.setStudentID(rs.getString(pref + "student_number"));
-
         return adult;
     }
 
@@ -210,8 +212,9 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
         so.setMarriageCertificateId(rs.getString("marriage_certificate_id"));
         so.setMarriageDate(rs.getDate("marriage_date").toLocalDate());
         Long roId = rs.getLong("register_office_id");
-
-        RegisterOffice ro = new RegisterOffice(roId, "","");
+        String ariaId = rs.getString("r_office_area_id"); // данные из таблицы register_office
+        String officeName = rs.getString("r_office_name"); // полученны inner join on
+        RegisterOffice ro = new RegisterOffice(roId, ariaId,officeName);
         so.setMarriageOffice(ro);
     }
 }
