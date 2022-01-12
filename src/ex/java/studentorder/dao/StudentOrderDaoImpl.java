@@ -38,14 +38,30 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
             " ?, ?, ?, ?, " +
             "?, ?, ?, ?, ?)";
     public static final String SELECT_ORDERS =
-            "SELECT so.*, ro.r_office_area_id, ro.r_office_name," +
-                    "po_h.p_office_area_id as h_p_office_area_id, po_h.p_office_name as h_p_office_name," +
-                    "po_w.p_office_area_id as w_p_office_area_id, po_w.p_office_name as w_p_office_name" +
-                    "FROM student_order so" +
-                    "INNER JOIN register_office ro ON ro.r_office_id = so.register_office_id" +
-                    "INNER JOIN passport_office po_h ON po_h.p_office_id = so.h_passport_office_id" +
-                    "INNER JOIN passport_office po_w ON po_w.p_office_id = so.w_passport_office_id" +
-                    "WHERE student_order_status = 0 ORDER BY student_order_date"; //внутренние соеденение на сортируем по дате
+            "SELECT so.*, ro.r_office_area_id, ro.r_office_name, " +
+                    "po_h.p_office_area_id as h_p_office_area_id, " +
+                    "po_h.p_office_name as h_p_office_name, " +
+                    "po_w.p_office_area_id as w_p_office_area_id, " +
+                    "po_w.p_office_name as w_p_office_name " +
+                    "FROM student_order so " +
+                    "INNER JOIN register_office ro ON ro.r_office_id = so.register_office_id " +
+                    "INNER JOIN passport_office po_h ON po_h.p_office_id = so.h_passport_office_id " +
+                    "INNER JOIN passport_office po_w ON po_w.p_office_id = so.w_passport_office_id " +
+                    "WHERE student_order_status = ? ORDER BY student_order_date "; // статус необработанного заявления StudentOrderStatus.START.ordinal()
+
+    public static final String SELECT_CHILD =
+            "SELECT sch.*, ro.r_office_area_id, ro.r_office_name " +
+                    "FROM student_child sch " +
+                    "INNER JOIN register_office ro ON ro.r_office_id = sch.ch_register_office_id " +
+                    "WHERE sch.student_order_id IN (1,2,3) ";
+//            "SELECT sch.*, po.p_office_area_id, po.p_office_name, " +
+//                    "h_so.h_given_name, h_so.h_sur_name, h_so.h_patronymic, h_so.h_date_of_birth, " +
+//                    "w_so.w_given_name, w_so.w_sur_name, w_so.w_patronymic, w_so.w_date_of_birth " +
+//                    "FROM student_child sch " +
+//                    "INNER JOIN passport_office po ON po.p_office_id = sch.student_order_id " +
+//                    "INNER JOIN student_order h_so ON h_so.student_order_id = sch.student_child_id " +
+//                    "INNER JOIN student_order w_so ON w_so.student_order_id = sch.student_child_id " +
+//                    "WHERE sch.student_child_id != 0 ORDER BY h_so.student_order_date";
 
 //TODO refactoring make one method
 
@@ -56,7 +72,7 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
                 Config.getProperty(Config.DB_PASSWORD));//avg
         return con;
     }
-    //Сохранение данных
+    //Сохранение необработанных студенческих заявлений
     @Override
     public Long saveStudentOrder(StudentOrder so) throws DaoException {
         Long result = -1L;
@@ -149,24 +165,34 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
         setAddressForPerson(stmt, 9,child);
     }
 
-    // получение данных. получает студенческие заявления
+    // получение студенческих заялений для проверки
     @Override
     public List<StudentOrder> getStudentOrders() throws DaoException{ //исключения для метода getStudentOrders()
         List<StudentOrder> result = new LinkedList<>(); // пустой список
         try (Connection con = getConnection(); //внутри метода может произойти SQLException
-             PreparedStatement stmt = con.prepareStatement(SELECT_ORDERS)) {
+             PreparedStatement stmt = con.prepareStatement(SELECT_ORDERS);
+             PreparedStatement stmtCh = con.prepareStatement(SELECT_CHILD)
+             ) {
+//          статус заявки, обработана или нет, student_order_status(chapter58)
+            stmt.setInt(1,StudentOrderStatus.START.ordinal());
 
-            ResultSet rs = stmt.executeQuery(); // возвращает результат запроса
+
+            ResultSet rs = stmt.executeQuery();  // возвращает результат запроса
+            ResultSet rsCh = stmtCh.executeQuery();
             while (rs.next()) {
                 StudentOrder so = new StudentOrder(); // если есть записи, создаем заявку so,
                 fillStudentOrder(rs, so);               // заполняем временными данными
                 fillWedding(rs, so);                    // и добаляем so в List<> result
                 Adult husband = fillAdult(rs, "h_");
                 Adult wife = fillAdult(rs, "w_");
+                List<Child> child = fillChild(rsCh);
                 so.setHusband(husband);
                 so.setWife(wife);
+                so.setChildren(child);
                 result.add(so);
             }
+            findChildren(con, result); //передаем con чтобы сформировать запрос PreparedStatement на детей
+
             rs.close();
         } catch (SQLException ex) { //если будет SQLExc, создается свой экземпляр
             throw new DaoException(ex);
@@ -174,6 +200,12 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
         return result; //список с заявками
     }
 
+    private void findChildren(Connection con, List<StudentOrder> result) {
+        //получение из потока заявок только soId
+        result.stream().map(so -> so.getStudentOrderID());
+    }
+
+    //    получение данных взрослых
     private Adult fillAdult(ResultSet rs, String pref) throws SQLException {
         Adult adult = new Adult();
         adult.setSurName(rs.getString(pref + "sur_name"));
@@ -184,7 +216,11 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
         adult.setPassportNumber(rs.getString(pref + "passport_number"));
         adult.setIssueData(rs.getDate(pref + "passport_date").toLocalDate());
 
-        PassportOffice po = new PassportOffice(rs.getLong(pref + "passport_office_id"),rs.getString(pref + "p_office_area_id"), rs.getString(pref + "p_office_name"));
+        Long poId = rs.getLong(pref + "passport_office_id");
+        String poAreaId = rs.getString(pref + "p_office_area_id");
+        String poName = rs.getString(pref + "p_office_name");
+        PassportOffice po = new PassportOffice(poId,poAreaId, poName);
+
         adult.setIssueDepartment(po); // TODO разобраться
         Address address = new Address();
         address.setPostCode(rs.getLong(pref + "post_index"));
@@ -200,6 +236,14 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
         return adult;
     }
 
+    private List<Child> fillChild(ResultSet rsCh) throws SQLException {
+        List<Child>  children = new LinkedList<>();
+        while(rsCh.next()){
+            Child child = new Child(rsCh.getString("ch_sur_name"),rsCh.getString("ch_given_name"),"",rsCh.getDate("ch_date_of_birth").toLocalDate());
+            children.add(child);
+        }
+        return children;
+    }
     // заголовки
     // получение данных заявления из БД, получение данных из rs может порождать исключения
     private void fillStudentOrder(ResultSet rs, StudentOrder so) throws SQLException{
