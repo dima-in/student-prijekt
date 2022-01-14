@@ -8,6 +8,7 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class StudentOrderDaoImpl implements StudentOrderDao{
 
@@ -53,7 +54,7 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
             "SELECT sch.*, ro.r_office_area_id, ro.r_office_name " +
                     "FROM student_child sch " +
                     "INNER JOIN register_office ro ON ro.r_office_id = sch.ch_register_office_id " +
-                    "WHERE sch.student_order_id IN (1,2,3) ";
+                    "WHERE sch.student_order_id IN (1,2,3)";
 //            "SELECT sch.*, po.p_office_area_id, po.p_office_name, " +
 //                    "h_so.h_given_name, h_so.h_sur_name, h_so.h_patronymic, h_so.h_date_of_birth, " +
 //                    "w_so.w_given_name, w_so.w_sur_name, w_so.w_patronymic, w_so.w_date_of_birth " +
@@ -199,10 +200,14 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
         }
         return result; //список с заявками
     }
-
-    private void findChildren(Connection con, List<StudentOrder> result) {
+    //собирает Student_Order_ID в одну строку
+    private void findChildren(Connection con, List<StudentOrder> result) throws SQLException {
         //получение из потока заявок только soId
-        result.stream().map(so -> so.getStudentOrderID());
+        String cl = "(" + result.stream().map(so -> String.valueOf(so.getStudentOrderID()))
+                .collect(Collectors.joining(",")) + ")";
+        try(PreparedStatement stmt = con.prepareStatement(SELECT_CHILD + cl)){
+
+        }
     }
 
     //    получение данных взрослых
