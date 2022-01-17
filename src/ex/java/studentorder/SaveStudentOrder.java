@@ -64,7 +64,7 @@ public class SaveStudentOrder
         so.setMarriageOffice(registerOffice);
 
         Street street = new Street(1L, "Кутузовский проспект");
-        Address address = new Address(235714L, street, "32","1", "103");
+        Address address = new Address("235714L", street, "32","1", "103");
 
         Adult husband = new Adult("Марш", "Рэнди","Марвин", LocalDate.of(1952,01,19));
         husband.setPassportSeries("" + (1000 + id));
