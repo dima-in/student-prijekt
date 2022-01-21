@@ -56,15 +56,8 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
             "SELECT sch.*, ro.r_office_area_id, ro.r_office_name " +
                     "FROM student_child sch " +
                     "INNER JOIN register_office ro ON ro.r_office_id = sch.ch_register_office_id " +
-                    "WHERE sch.student_order_id  IN ?";
-//            "SELECT sch.*, po.p_office_area_id, po.p_office_name, " +
-//                    "h_so.h_given_name, h_so.h_sur_name, h_so.h_patronymic, h_so.h_date_of_birth, " +
-//                    "w_so.w_given_name, w_so.w_sur_name, w_so.w_patronymic, w_so.w_date_of_birth " +
-//                    "FROM student_child sch " +
-//                    "INNER JOIN passport_office po ON po.p_office_id = sch.student_order_id " +
-//                    "INNER JOIN student_order h_so ON h_so.student_order_id = sch.student_child_id " +
-//                    "INNER JOIN student_order w_so ON w_so.student_order_id = sch.student_child_id " +
-//                    "WHERE sch.student_child_id != 0 ORDER BY h_so.student_order_date";
+                    "WHERE sch.student_order_id  IN ";
+
 
 //TODO refactoring make one method
 
@@ -201,22 +194,27 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
         }
         return result; //список с заявками
     }
-    //собирает Student_Order_ID в одну строку,
+    //находит и добавляет детей к соответствующему заявлению по student_order_id
     private void findChildren(Connection con, List<StudentOrder> result) throws SQLException {
 //получение из потока заявок только soId,
-// создание параметра для запроса SELECT_CHILD
+// создание параметра для запроса SELECT_CHILD "WHERE sch.student_order_id  IN (......)"
         String cl = "(" + result.stream().map(so -> String.valueOf(so.getStudentOrderID()))
                 .collect(Collectors.joining(",")) + ")";
-//  toMap таблица типа json key:value
+//  toMap таблица (типа json) key:value
 //  ассоциативный массив для поиска и сопоставления детей соответствующей заявке по student_order_id
 //  на конвеере лежит so, so -> so.getStudentOrderID() вытаскиваем 1й аргумент id, 2й аргумент весь so
-        Map<Long, StudentOrder> maps = result.stream().collect(Collectors.toMap(so -> so.getStudentOrderID(), so -> so));
+        Map<Long, StudentOrder> maps = result.stream()
+                .collect(Collectors.toMap(so -> so.getStudentOrderID(), so -> so));
 
         try(PreparedStatement stmt = con.prepareStatement(SELECT_CHILD + cl)){
             ResultSet rs = stmt.executeQuery();
             while (rs.next()){  // пока есть результаты rs запроса stmt
+                System.out.println(rs.getLong(1) + ":" + rs.getString(4));
                 Child ch = fillChild(rs);
-                StudentOrder so = maps.get(rs.getLong("student_order_id"));//
+// из ассоциативного массива maps возвращается so, student_order_id которого соответствует
+// student_order_id, полученного из SELECT_CHILD
+                StudentOrder so = maps.get(rs.getLong("student_order_id"));
+// к полученному so додбавляются соответствующие дети
                 so.addChild(ch);
             }
         }
@@ -270,22 +268,25 @@ public class StudentOrderDaoImpl implements StudentOrderDao{
     }
     //
     private Child fillChild(ResultSet rs) throws SQLException {
-                String chsn = rs.getString("ch_sur_name");
-                String chgn = rs.getString("ch_given_name");
-                String ptrc = rs.getString("ch_patronymic");
-                LocalDate dofb = rs.getDate("ch_date_of_birth").toLocalDate();
-                Child child = new Child(chsn,chgn,ptrc,dofb);
+                String chSurName = rs.getString("ch_sur_name");
+                String chGivenName = rs.getString("ch_given_name");
+                String chPatronymic = rs.getString("ch_patronymic");
+                LocalDate chDateOfBirth = rs.getDate("ch_date_of_birth").toLocalDate();
+
+                Child child = new Child(chSurName,chGivenName,chPatronymic,chDateOfBirth);
+
                 child.setCertificateNumber(rs.getString("ch_certificate_number"));
                 child.setIssueDate(rs.getDate("ch_certificate_date").toLocalDate());
 
                 Long roID = rs.getLong("ch_register_office_id");
-                RegisterOffice ro = new RegisterOffice();
+                String roOfficeAreaID = rs.getString("r_office_area_id");
+                String roOfficeName = rs.getString("r_office_name");
+                RegisterOffice ro = new RegisterOffice(roID, roOfficeAreaID, roOfficeName);
                 child.setIssueDepartment(ro);
 
                 Address adr = new Address();
                 Long srteetcode = rs.getLong("ch_street_code");
-                String streetname = rs.getString("");
-                Street st = new Street(srteetcode, streetname);
+                Street st = new Street(srteetcode, "");
                 adr.setStreet(st);
                 adr.setPostCode(rs.getString("ch_post_index"));
                 adr.setBuilding(rs.getString("ch_building"));

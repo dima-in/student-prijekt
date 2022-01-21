@@ -42,7 +42,7 @@ public class SaveStudentOrder
 //        System.out.println("тоже id " + id);
         List<StudentOrder> soList = dao.getStudentOrders();
         for (StudentOrder so : soList){
-            System.out.println("id из List<StudentOrder> " + so.getStudentOrderID());
+            System.out.println(so.getStudentOrderID());
         }
     }
 
