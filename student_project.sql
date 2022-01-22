@@ -114,3 +114,6 @@ CREATE TABLE student_child
     FOREIGN KEY (ch_register_office_id) REFERENCES register_office(r_office_id) ON DELETE RESTRICT,
     FOREIGN KEY (ch_street_code) REFERENCES cat_street(street_code) ON DELETE RESTRICT
 );
+
+CREATE INDEX idx_student_order_status ON student_order(student_order_status);
+CREATE INDEX idx_student_order_id ON student_child(student_order_id);
